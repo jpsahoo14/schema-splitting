@@ -6,7 +6,7 @@ Each schema has all the types and input it needs.
 
 ## For example
 
-Conside we have a schema with 2 queries. We want to split this in to 2 smaller schemas
+Conside we have a schema with 2 queries.
 
 ```graphql
 type Query {
@@ -38,7 +38,7 @@ type User {
 }
 ```
 
-Now we want to split the 2 queries into 1-1 queries sub-schema. This tools will split it in this way.
+Now we want to split the 2 queries into 1-1 query sub-schema. This tools will split it in this way.
 
 Schema-1.graphql
 
@@ -102,7 +102,7 @@ type User {
 }
 ```
 
-For the above split below is the config object
+For the above split, below is the config object
 
 ```javascript
 const config = {
@@ -133,11 +133,17 @@ splitSchema(schemaPath, config)
 
 ```
 
+## Test
+
+To test it just run `yarn test`
+
 ## API
 
 ### splitSchema(schemaPath, config)
 
 Returns a Promise<void>
+
+## Options
 
 ### schemaPath
 
@@ -149,8 +155,8 @@ It accepts the path to schema which needs to be splitted. It should be in SDL fo
 
 type: `IConfig`
 
-`IConfig` is a type of `splitSchemaPath : Object`
-it accepts a `schemaConfig` object, which is in the form of `Query, Mutation, Subscription`.
+`IConfig` is a type of `splitSchemaPath : Object` (key:value) pair
+it accepts a `schemaConfig` object, which is of the form of `Query, Mutation, Subscription`.
 
 ```javascript
 {
@@ -170,7 +176,7 @@ Sample schemaConfig object
 
 ```javascript
 const config = const config: IConfig = {
-    [pathToSplitSchema-1]: {
+    `./schema-1.graphql`: {
       schemaConfig: {
         Query: {
           User: "User",
@@ -180,7 +186,7 @@ const config = const config: IConfig = {
         }
       },
     },
-    [pathToSplitSchema-1]: {
+    `./schema-2.graphql`: {
       schemaConfig: {
           Query:{
             Notifications: "Notifications",
@@ -216,6 +222,6 @@ const config = {
 
 ## Merging splitted schema
 
-We can merge splitted schema by using `mergeSchemas` from `graphql-tools`
+We can merge splitted schema by using `mergeSchemas` from `graphql-tools`. On merging it creates the exact same schema as we had earlier before splitting.
 
 One can look into `test/merge-schema.ts`
