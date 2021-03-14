@@ -8,6 +8,7 @@ import {
   InputValueDefinitionNode,
   TypeNode,
   FieldDefinitionNode,
+  UnionTypeDefinitionNode,
 } from "graphql";
 import { scalarTypes } from "./constants";
 import { cloneDeep } from "lodash";
@@ -78,9 +79,9 @@ const processRootFields = (
         if (askedField === fieldName) {
           fieldsToAdd.push(cloneDeep(field));
           field.arguments?.forEach((arg: InputValueDefinitionNode) => {
-            addTypeToDocument(arg, nodesMap, options);
+            addFieldToDocument(arg, nodesMap, options);
           });
-          addTypeToDocument(field, nodesMap, options);
+          addFieldToDocument(field, nodesMap, options);
         }
       }
     }
@@ -89,27 +90,47 @@ const processRootFields = (
   return { fieldsToAdd };
 };
 
-const addTypeToDocument = (
+const addFieldToDocument = (
   field: InputValueDefinitionNode | FieldDefinitionNode,
   nodesMap: Map<string, ObjectTypeDefinitionNode>,
   options: IOptions
 ) => {
   const typeName = getTypeName(field.type);
+  return addTypeToDocument(typeName, nodesMap, options);
+};
+
+const addTypeToDocument = (
+  typeName: string,
+  nodesMap: Map<string, ObjectTypeDefinitionNode>,
+  options: IOptions
+) => {
   if (options.typesMap.has(typeName)) {
     return;
   }
-  const found = scalarTypes.find((scalar) => scalar === typeName);
+  const found = isScalarType(typeName);
   if (found) {
     return;
   }
-  const typeDefinition: ObjectTypeDefinitionNode | undefined = nodesMap.get(
-    typeName
-  );
-  const clonedTypeDefinition = cloneDeep(typeDefinition);
-  options.typesMap.set(typeName, cloneDeep(typeDefinition));
-  clonedTypeDefinition?.fields?.forEach((field) => {
-    addTypeToDocument(field, nodesMap, options);
-  });
+  const clonedTypeDefinition:
+    | UnionTypeDefinitionNode
+    | ObjectTypeDefinitionNode = getClonedTypedDefinition(nodesMap, typeName);
+
+  if (clonedTypeDefinition === undefined) {
+    return;
+  }
+  options.typesMap.set(typeName, clonedTypeDefinition);
+
+  if (isUnionTypeDefinitionNode(clonedTypeDefinition)) {
+    ((clonedTypeDefinition as unknown) as UnionTypeDefinitionNode).types.forEach(
+      (type) => {
+        addTypeToDocument(type.name.value, nodesMap, options);
+      }
+    );
+  } else {
+    clonedTypeDefinition?.fields?.forEach((field) => {
+      addFieldToDocument(field, nodesMap, options);
+    });
+  }
 };
 
 const getTypeName = (type: TypeNode): string => {
@@ -118,4 +139,31 @@ const getTypeName = (type: TypeNode): string => {
   }
 
   return getTypeName((type as ListTypeNode).type);
+};
+
+const isScalarType = (typeName: string) => {
+  return scalarTypes.find((scalar) => scalar === typeName);
+};
+const isUnionTypeDefinitionNode = (
+  clonedTypeDefinition: ObjectTypeDefinitionNode
+) => {
+  return (
+    ((clonedTypeDefinition as unknown) as UnionTypeDefinitionNode).kind ===
+    "UnionTypeDefinition"
+  );
+};
+
+const getClonedTypedDefinition = (
+  nodesMap: Map<string, ObjectTypeDefinitionNode>,
+  typeName: string
+) => {
+  const typeDefinition:
+    | ObjectTypeDefinitionNode
+    | undefined
+    | UnionTypeDefinitionNode = nodesMap.get(typeName);
+
+  const clonedTypeDefinition:
+    | UnionTypeDefinitionNode
+    | ObjectTypeDefinitionNode = cloneDeep(typeDefinition);
+  return clonedTypeDefinition;
 };

@@ -1,14 +1,18 @@
+type Mutation {
+  createTweet(body: String): Tweet
+  deleteTweet(id: ID!): Tweet
+  markTweetRead(id: ID!): Boolean
+}
+
 type Tweet {
   id: ID!
-  # The tweet text. No more than 140 characters!
   body: String
-  # When the tweet was published
   date: Date
-  # Who published the tweet
   Author: User
-  # Views, retweets, likes, etc
   Stats: Stat
 }
+
+scalar Date
 
 type User {
   id: ID!
@@ -21,6 +25,10 @@ type User {
   media: Media
 }
 
+scalar Url
+
+union Media = Book | Movie
+
 type Book {
   id: Int!
   name: String
@@ -31,13 +39,19 @@ type Movie {
   name: String
 }
 
-union Media = Book | Movie
-
 type Stat {
   views: Int
   likes: Int
   retweets: Int
   responses: Int
+}
+
+type Query {
+  Tweet(id: ID!): Tweet
+  Tweets(limit: Int, skip: Int, sort_field: String, sort_order: String): [Tweet]
+  User(id: ID!): User
+  Notifications(limit: Int): [Notification]
+  NotificationsMeta: Meta
 }
 
 type Notification {
@@ -48,22 +62,4 @@ type Notification {
 
 type Meta {
   count: Int
-}
-
-scalar Url
-scalar Date
-
-type Query {
-  Tweet(id: ID!): Tweet
-  Tweets(limit: Int, skip: Int, sort_field: String, sort_order: String): [Tweet]
-  TweetsMeta: Meta
-  User(id: ID!): User
-  Notifications(limit: Int): [Notification]
-  NotificationsMeta: Meta
-}
-
-type Mutation {
-  createTweet(body: String): Tweet
-  deleteTweet(id: ID!): Tweet
-  markTweetRead(id: ID!): Boolean
 }

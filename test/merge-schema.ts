@@ -32,4 +32,4 @@ export const mergeSchema = async () => {
   );
 };
 
-mergeSchema();
+// mergeSchema();

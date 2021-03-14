@@ -1,0 +1,47 @@
+type Mutation {
+  createTweet(body: String): Tweet
+  deleteTweet(id: ID!): Tweet
+  markTweetRead(id: ID!): Boolean
+}
+
+type Tweet {
+  id: ID!
+  body: String
+  date: Date
+  Author: User
+  Stats: Stat
+}
+
+scalar Date
+
+type User {
+  id: ID!
+  username: String
+  first_name: String
+  last_name: String
+  full_name: String
+  name: String @deprecated
+  avatar_url: Url
+  media: Media
+}
+
+scalar Url
+
+union Media = Book | Movie
+
+type Book {
+  id: Int!
+  name: String
+}
+
+type Movie {
+  id: Int
+  name: String
+}
+
+type Stat {
+  views: Int
+  likes: Int
+  retweets: Int
+  responses: Int
+}

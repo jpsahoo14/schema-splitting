@@ -44,6 +44,7 @@ const schemaSplitting = async () => {
 
 export const testSchemaSplitting = async () => {
   await schemaSplitting();
+  console.log(`Before callinig mergeSchema`);
   await mergeSchema();
 };
 
